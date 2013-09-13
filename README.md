@@ -18,14 +18,14 @@ When a web request come to your server, CSFRProtector check if the associated to
 
 
 ## Installation
-First off all, download and unzip all the contents in a folder in your server. Let's suppose is *libs*
+First off all, download and unzip all the contents in a folder in your server. Let's suppose is *libs*.   
 At the begin of your main script, add this code
 
 ```php
   
-  require ("libs/CSFRProtector-master/CSFRProtector.php");
-  $csfr = new CSFRProtector();
-  $csfr->run();
+require ("libs/CSFRProtector-master/CSFRProtector.php");
+$csfr = new CSFRProtector();
+$csfr->run();
   
 ```
 
@@ -34,9 +34,24 @@ That is all! Anyway it's more powerfull than what might seem.
 #### Advanced configurations
 
 The construct can take three optional arguments:
+
 1. A [callable](http://php.net/manual/en/language.types.callable.php) function that will be called when CSFR attack are discovered (standard action is to end the script and display "CSFR protection")
 2. A [callable](http://php.net/manual/en/language.types.callable.php) function that generate the token(by default is a composition of 3 randomic value)
 3. The maximum life time of tokens in seconds(default is 120 seconds)
 
+```php
 
-$csfr = new CSFRProtector();
+$error = function(){
+  die("Nice try dude");  
+};
+
+$token = function(){
+    return "_".mt_rand(1,200).md5(mt_rand(2,100));
+};
+
+$time = 30; //in seconds
+
+$csfr = new CSFRProtector($error,$token,$time);
+$csfr->run();
+
+```
