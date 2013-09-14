@@ -30,8 +30,8 @@ At the begin of your main script, add this code
 ```php
   
 require ("libs/CSRFProtector-master/CSRFProtector.php");
-$csfr = new CSRFProtector();
-$csfr->run();
+$csrf = new CSRFProtector();
+$csrf->run();
   
 ```
 
@@ -59,7 +59,7 @@ $token = function(){
 $time = 30; //in seconds
 $min = 0; // in seconds
 
-$csfr = new CSRFProtector($error,$token,$time,$min);
-$csfr->run();
+$csrf = new CSRFProtector($error,$token,$time,$min);
+$csrf->run();
 
 ```
