@@ -64,3 +64,23 @@ $csrf = new CSRFProtector($error,$token,$time,$min);
 $csrf->run();
 
 ```
+
+
+
+It's also possible to manually protect GET and POST data using fews function:
+```php
+$auto = false;
+$csrf = new CSRFProtector();
+$csrf->run($auto);
+
+<html>
+  <body>
+    <a href="<?php echo $csrf->protectUrl("index.php"); ?>">a link</a>
+    
+    <form action="form.php" method="post">
+      <?php echo $csrf->getFormHiddenComponent(); ?>
+    </form> 
+  </body>
+</html>
+
+
