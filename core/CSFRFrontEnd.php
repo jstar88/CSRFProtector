@@ -26,12 +26,16 @@ class CSFRFrontEnd
     }
     public function checkGets()
     {
+        if (!empty($_POST))
+        {
+            return;
+        }
         if (isset($_GET['csrftoken']) && $this->tokenManager->useToken($_GET['csrftoken']))
         {
             return;
         }
-        
-        if(empty($_GET) && $this->tokenManager->isFirstVisit())
+
+        if (empty($_GET) && $this->tokenManager->isFirstVisit())
         {
             return;
         }
@@ -39,11 +43,23 @@ class CSFRFrontEnd
     }
     public function checkPosts()
     {
+        if (!empty($_GET))
+        {
+            return;
+        }
         if (isset($_POST['csrftoken']) && $this->tokenManager->useToken($_POST['csrftoken']))
         {
             return;
         }
-        if(empty($_POST) && $this->tokenManager->isFirstVisit())
+        if (empty($_POST) && $this->tokenManager->isFirstVisit())
+        {
+            return;
+        }
+        call_user_func($this->errorFunction);
+    }
+    public function checkUser()
+    {
+        if ($this->tokenManager->isAcceptedClick())
         {
             return;
         }

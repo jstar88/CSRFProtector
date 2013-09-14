@@ -59,8 +59,7 @@ class CSFRBackEnd
                     continue;
                 }
                 $domNode->setAttribute('action', $href);
-            }
-            else
+            } else
             {
                 $element = $this->dom->createElement('input', '');
                 $element->setAttribute('type', 'hidden');

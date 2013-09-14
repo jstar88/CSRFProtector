@@ -1,4 +1,5 @@
 <?php
+
 require ("core/TokenManager.php");
 require ("core/CSFRBackEnd.php");
 require ("core/CSFRFrontEnd.php");
@@ -18,10 +19,10 @@ class CSFRProtector
     private $frontEnd;
     private $backEnd;
 
-    public function __construct(callable $errorFunction = null, callable $tokenFunction = null, $maxTime = 120)
+    public function __construct(callable $errorFunction = null, callable $tokenFunction = null, $maxTime = 120, $minSecondBeforeNextClick = 1)
     {
-        $this->tokenManager = new TokenManager($tokenFunction, $maxTime);
-        $this->frontEnd = new CSFRFrontEnd($this->tokenManager,$errorFunction);
+        $this->tokenManager = new TokenManager($tokenFunction, $maxTime, $minSecondBeforeNextClick);
+        $this->frontEnd = new CSFRFrontEnd($this->tokenManager, $errorFunction);
         $this->backEnd = new CSFRBackEnd($this->tokenManager);
     }
 
@@ -37,6 +38,7 @@ class CSFRProtector
     {
         $this->frontEnd->checkGets();
         $this->frontEnd->checkPosts();
+        $this->frontEnd->checkUser();
     }
 
     public function csrfBackEnd()
@@ -45,7 +47,7 @@ class CSFRProtector
         $this->backEnd->protectForms();
         $this->backEnd->protectLinks();
         $this->backEnd->saveObContents();
-        
+
     }
     public function applyNewToken()
     {
@@ -55,7 +57,7 @@ class CSFRProtector
     {
         return $this->tokenManager->useToken($token);
     }
-    
+
 }
 
 ?>
