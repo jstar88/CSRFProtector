@@ -1,8 +1,8 @@
 <?php
 
 /**
- * CSFRProtector
- * A class usefull to avoid CSFR attacks
+ * CSRFProtector
+ * A class usefull to avoid CSRF attacks
  * @package   
  * @author Jstar
  * @copyright Jstar
@@ -10,7 +10,7 @@
  * @access public
  * @license GNU v3
  */
-class CSFRFrontEnd
+class CSRFFrontEnd
 {
     private $errorFunction;
     private $tokenManager;
@@ -20,7 +20,7 @@ class CSFRFrontEnd
         $this->tokenManager = $tokenManager;
         $this->errorFunction = ($errorFunction != null) ? $errorFunction : function ()
         {
-            die("CSFR protection");
+            die("CSRF protection");
         }
         ;
     }

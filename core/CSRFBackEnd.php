@@ -1,8 +1,8 @@
 <?php
 
 /**
- * CSFRProtector
- * A class usefull to avoid CSFR attacks
+ * CSRFProtector
+ * A class usefull to avoid CSRF attacks
  * @package   
  * @author Jstar
  * @copyright Jstar
@@ -10,7 +10,7 @@
  * @access public
  * @license GNU v3
  */
-class CSFRBackEnd
+class CSRFBackEnd
 {
     private $dom;
     private $tokenManager;

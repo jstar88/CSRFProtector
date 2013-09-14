@@ -1,6 +1,6 @@
 <?php
 
-require ("../CSFRProtector.php");
+require ("../CSRFProtector.php");
 
 $error = function ()
 {
@@ -18,7 +18,7 @@ $time = 120; //in seconds
 $min = 1; //in seconds
 
 
-$csfr = new CSFRProtector($error, $token, $time, $min);
+$csfr = new CSRFProtector($error, $token, $time, $min);
 $csfr->run();
 echo "<html><body><a href=\"Sample.php\">click me</a></body></html>";
 

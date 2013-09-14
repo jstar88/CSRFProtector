@@ -1,11 +1,11 @@
 <?php
 
 require ("core/TokenManager.php");
-require ("core/CSFRBackEnd.php");
-require ("core/CSFRFrontEnd.php");
+require ("core/CSRFBackEnd.php");
+require ("core/CSRFFrontEnd.php");
 /**
- * CSFRProtector
- * A class usefull to avoid CSFR attacks
+ * CSRFProtector
+ * A class usefull to avoid CSRF attacks
  * @package   
  * @author Jstar
  * @copyright Jstar
@@ -13,7 +13,7 @@ require ("core/CSFRFrontEnd.php");
  * @access public
  * @license GNU v3
  */
-class CSFRProtector
+class CSRFProtector
 {
     private $tokenManager;
     private $frontEnd;
@@ -22,8 +22,8 @@ class CSFRProtector
     public function __construct(callable $errorFunction = null, callable $tokenFunction = null, $maxTime = 120, $minSecondBeforeNextClick = 1)
     {
         $this->tokenManager = new TokenManager($tokenFunction, $maxTime, $minSecondBeforeNextClick);
-        $this->frontEnd = new CSFRFrontEnd($this->tokenManager, $errorFunction);
-        $this->backEnd = new CSFRBackEnd($this->tokenManager);
+        $this->frontEnd = new CSRFFrontEnd($this->tokenManager, $errorFunction);
+        $this->backEnd = new CSRFBackEnd($this->tokenManager);
     }
 
     public function run()
