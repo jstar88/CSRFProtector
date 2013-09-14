@@ -18,8 +18,8 @@ $time = 120; //in seconds
 $min = 1; //in seconds
 
 
-$csfr = new CSRFProtector($error, $token, $time, $min);
-$csfr->run();
+$csrf = new CSRFProtector($error, $token, $time, $min);
+$csrf->run();
 echo "<html><body><a href=\"Sample.php\">click me</a></body></html>";
 
 ?>
