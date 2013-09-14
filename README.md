@@ -30,7 +30,7 @@ At the begin of your main script, add this code
 ```php
   
 require ("libs/CSRFProtector-master/CSRFProtector.php");
-$csfr = new CSFRProtector();
+$csfr = new CSRFProtector();
 $csfr->run();
   
 ```
