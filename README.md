@@ -10,7 +10,7 @@ This class can be usefull to also avoid some sort of javascript scripts that att
 ## Why I should use this class?
 Most of others PHP scripts require that you manually edit link and form one by one.  
 In medium and big size application, this is not only stressful but also dangerous because as human you can do mistakes.  
-**CSFRProtector**, instead, do the job automatically!  
+**CSRFProtector**, instead, do the job automatically!  
 
 Just before the end of the scripts, it search in the output buffered each links and forms. Then, they are modified adding a speacial randomic token:
 tokens are then saved in sessions to create a white list.  
@@ -29,7 +29,7 @@ At the begin of your main script, add this code
 
 ```php
   
-require ("libs/CSFRProtector-master/CSFRProtector.php");
+require ("libs/CSRFProtector-master/CSRFProtector.php");
 $csfr = new CSFRProtector();
 $csfr->run();
   
@@ -41,7 +41,7 @@ That is all! Anyway it's more powerfull than what might seem.
 
 The construct can take three optional arguments:
 
-1. A [callable](http://php.net/manual/en/language.types.callable.php) function that will be called when CSFR attack are discovered (standard action is to end the script and display "CSFR protection")
+1. A [callable](http://php.net/manual/en/language.types.callable.php) function that will be called when CSRF attack are discovered (standard action is to end the script and display "CSFR protection")
 2. A [callable](http://php.net/manual/en/language.types.callable.php) function that generate the token(by default is a composition of 3 randomic value)
 3. The maximum life time of tokens in seconds(default is 120 seconds)
 4. The minimum time requested between the current script end time and the next request(default is 1 second) 
@@ -59,7 +59,7 @@ $token = function(){
 $time = 30; //in seconds
 $min = 0; // in seconds
 
-$csfr = new CSFRProtector($error,$token,$time,$min);
+$csfr = new CSRFProtector($error,$token,$time,$min);
 $csfr->run();
 
 ```
