@@ -26,12 +26,15 @@ class CSRFProtector
         $this->backEnd = new CSRFBackEnd($this->tokenManager);
     }
 
-    public function run()
+    public function run($autoProtect = true)
     {
         ob_start();
         $this->csrfFrontEnd();
         //ob_start(array(&$this, 'csrfBackEnd'));
-        register_shutdown_function(array(&$this, 'csrfBackEnd'));
+        if($autoProtect)
+        {   
+            register_shutdown_function(array(&$this, 'csrfBackEnd'));
+        }
     }
 
     private function csrfFrontEnd()
@@ -47,15 +50,27 @@ class CSRFProtector
         $this->backEnd->protectForms();
         $this->backEnd->protectLinks();
         $this->backEnd->saveObContents();
-
     }
+    
     public function applyNewToken()
     {
         return $this->tokenManager->applyNewToken();
     }
+    
     public function useToken($token)
     {
         return $this->tokenManager->useToken($token);
+    }
+    
+    public function protectUrl($url)
+    {
+        return $this->backEnd->protectUrl($url);        
+    }
+    
+    public function getFormHiddenComponent()
+    {
+        $token = $this->applyNewToken();
+        return "<input type=\"hidden\" name=\"csrftoken\" value=\"$token\"></input>";    
     }
 
 }
