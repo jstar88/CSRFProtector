@@ -1,7 +1,7 @@
 CSRFProtector
 ==============
 
-Protect against CSRF attack.
+Protect against CSRF attack.              **PHP >= 5.4**
 
 ## Introduction
 Cross-site request forgery, also known as a one-click attack or session riding and abbreviated as CSRF (sometimes pronounced sea-surf) or XSRF, is a type of malicious exploit of a website whereby unauthorized commands are transmitted from a user that the website trusts.   
