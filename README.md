@@ -78,8 +78,10 @@ $csrf->run();
 
 It's also possible to manually protect GET and POST data using fews function:
 ```php
+
 $auto = false;
-$csrf = new CSRFProtector();
+$jsPath = "CSRFProtector";
+$csrf = new CSRFProtector($jsPath);
 $csrf->run($auto);
 
 <html>
