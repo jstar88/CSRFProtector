@@ -23,6 +23,12 @@ So sum up:
 * CSRF protection
 * Bot scripts protection
 * Race conditions
+* No cookie or database used
+
+To do:
+
+* Enable ajax
+* Enable javascript redirect
 
 ## Installation
 First off all, download and unzip all the contents in a folder in your server. Let's suppose is *libs*.   
@@ -31,7 +37,8 @@ At the begin of your main script, add this code
 ```php
   
 require ("libs/CSRFProtector-master/CSRFProtector.php");
-$csrf = new CSRFProtector();
+$jsPath = "CSRFProtector"; // path where is native.history.js
+$csrf = new CSRFProtector($jsPath);
 $csrf->run();
   
 ```
@@ -42,10 +49,11 @@ That is all! Anyway it's more powerfull than what might seem.
 
 The construct can take three optional arguments:
 
-1. A [callable](http://php.net/manual/en/language.types.callable.php) function that will be called when CSRF attack are discovered (standard action is to end the script and display "CSFR protection")
-2. A [callable](http://php.net/manual/en/language.types.callable.php) function that generate the token(by default is a composition of 3 randomic value)
-3. The maximum life time of tokens in seconds(default is 120 seconds)
-4. The minimum time requested between the current script end time and the next request(default is 1 second) 
+1  A string path where is native.history.js (browser will search for {yourpath}/native.history.js)
+2. A [callable](http://php.net/manual/en/language.types.callable.php) function that will be called when CSRF attack are discovered (standard action is to end the script and display "CSFR protection")
+3. A [callable](http://php.net/manual/en/language.types.callable.php) function that generate the token(by default is a composition of 3 randomic value)
+4. The maximum life time of tokens in seconds(default is 120 seconds)
+5. The minimum time requested between the current script end time and the next request(default is 1 second) 
 
 ```php
 
@@ -59,8 +67,9 @@ $token = function(){
 
 $time = 30; //in seconds
 $min = 0; // in seconds
+$jsPath = "CSRFProtector"; // path where is native.history.js
 
-$csrf = new CSRFProtector($error,$token,$time,$min);
+$csrf = new CSRFProtector($jsPath,$error,$token,$time,$min);
 $csrf->run();
 
 ```

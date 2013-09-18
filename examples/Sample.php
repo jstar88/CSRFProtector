@@ -17,8 +17,10 @@ $token = function ()
 $time = 120; //in seconds
 $min = 1; //in seconds
 
+$jsPath = "CSRFProtector";
 
-$csrf = new CSRFProtector($error, $token, $time, $min);
+
+$csrf = new CSRFProtector($jsPath, $error, $token, $time, $min);
 $csrf->run();
 echo "<html><body><a href=\"Sample.php\">click me</a></body></html>";
 

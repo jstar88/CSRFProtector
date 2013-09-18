@@ -19,11 +19,11 @@ class CSRFProtector
     private $frontEnd;
     private $backEnd;
 
-    public function __construct(callable $errorFunction = null, callable $tokenFunction = null, $maxTime = 120, $minSecondBeforeNextClick = 1)
+    public function __construct($jsPath ="" ,callable $errorFunction = null, callable $tokenFunction = null, $maxTime = 120, $minSecondBeforeNextClick = 1)
     {
         $this->tokenManager = new TokenManager($tokenFunction, $maxTime, $minSecondBeforeNextClick);
         $this->frontEnd = new CSRFFrontEnd($this->tokenManager, $errorFunction);
-        $this->backEnd = new CSRFBackEnd($this->tokenManager);
+        $this->backEnd = new CSRFBackEnd($this->tokenManager,$jsPath);
     }
 
     public function run($autoProtect = true)
@@ -47,8 +47,10 @@ class CSRFProtector
     public function csrfBackEnd()
     {
         $this->backEnd->loadObContents();
+        $this->backEnd->addHistoryScript();
         $this->backEnd->protectForms();
         $this->backEnd->protectLinks();
+        $this->backEnd->protectRedirect();
         $this->backEnd->saveObContents();
     }
     
