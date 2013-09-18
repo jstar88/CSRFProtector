@@ -49,7 +49,7 @@ That is all! Anyway it's more powerfull than what might seem.
 
 The construct can take three optional arguments:
 
-1  A string path where is native.history.js (browser will search for {yourpath}/native.history.js)
+1. A string path where is native.history.js (browser will search for {yourpath}/native.history.js)
 2. A [callable](http://php.net/manual/en/language.types.callable.php) function that will be called when CSRF attack are discovered (standard action is to end the script and display "CSFR protection")
 3. A [callable](http://php.net/manual/en/language.types.callable.php) function that generate the token(by default is a composition of 3 randomic value)
 4. The maximum life time of tokens in seconds(default is 120 seconds)
