@@ -15,12 +15,14 @@ class CSRFBackEnd
     private $dom;
     private $tokenManager;
     private $jsPath;
+    private $frontEnd;
 
-    public function __construct(TokenManager $tokenManager, $jsPath)
+    public function __construct(TokenManager $tokenManager, $jsPath, CSRFFrontEnd $frontEnd)
     {
         $this->dom = new DOMDocument();
         $this->tokenManager = $tokenManager;
         $this->jsPath = $jsPath;
+        $this->frontEnd = $frontEnd;
     }
 
 
@@ -87,13 +89,15 @@ class CSRFBackEnd
 
     public function addHistoryScript()
     {
+        if ($this->frontEnd->isAjax())
+            return;
         $token = $this->tokenManager->applyNewToken();
 
         $history = $this->dom->createElement("script");
         $history->setAttribute('src', $this->jsPath . '/native.history.js');
 
         $titleElement = $this->dom->getElementsByTagName('title');
-        $title = (!empty($titleElement)) ? $titleElement->item(0)->nodeValue : null;
+        $title = ($titleElement->length > 0) ? $titleElement->item(0)->nodeValue : null;
 
         $scriptText = "window.onload=function(){
             (function(window,undefined){               
@@ -107,6 +111,28 @@ class CSRFBackEnd
         $body->appendChild($history);
         $body->appendChild($script);
     }
+
+    public function protectAjax()
+    {
+        $token = $this->tokenManager->applyNewToken();
+        $server = $_SERVER["HTTP_HOST"];
+        $body = $this->dom->getElementsByTagName("body")->item(0);
+        if ($this->frontEnd->isAjax())
+        {
+            $scriptText = "csrftoken = '$token'; server = '$server'";
+        }
+        else
+        {
+            $csrfScript = $this->dom->createElement("script");
+            $csrfScript->setAttribute('src', $this->jsPath . '/csrf.protector.js');
+            $body->appendChild($csrfScript);
+            $scriptText = "var csrftoken = '$token'; var server = '$server'";
+        }
+        $script = $this->dom->createElement("script");
+        $script->appendChild($this->dom->createTextNode($scriptText));
+        $body->appendChild($script);
+    }
+
     public function protectRedirect()
     {
         //clean redirect called by header() function
@@ -150,6 +176,7 @@ class CSRFBackEnd
         //to do
 
     }
+
     private function isHrefToThisServer($href)
     {
         return parse_url($href, PHP_URL_HOST) == $_SERVER["HTTP_HOST"] || parse_url($href, PHP_URL_HOST) == null;

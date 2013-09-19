@@ -62,7 +62,7 @@ $error = function(){
 };
 
 $token = function(){
-    return "_".mt_rand(1,200).md5(mt_rand(2,100));
+    return "_".md5(mt_rand(2,100)).time().microtime(); // univoque for better security
 };
 
 $time = 30; //in seconds

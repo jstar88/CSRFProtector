@@ -65,6 +65,10 @@ class CSRFFrontEnd
         }
         call_user_func($this->errorFunction);
     }
+    public function isAjax()
+    {
+        return isset($_GET['csrftokenAjax']);
+    }
 }
 
 ?>

@@ -17,7 +17,7 @@ $token = function ()
 $time = 120; //in seconds
 $min = 1; //in seconds
 
-$jsPath = "CSRFProtector";
+$jsPath = "";
 
 
 $csrf = new CSRFProtector($jsPath, $error, $token, $time, $min);

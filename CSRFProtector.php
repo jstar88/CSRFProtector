@@ -23,7 +23,7 @@ class CSRFProtector
     {
         $this->tokenManager = new TokenManager($tokenFunction, $maxTime, $minSecondBeforeNextClick);
         $this->frontEnd = new CSRFFrontEnd($this->tokenManager, $errorFunction);
-        $this->backEnd = new CSRFBackEnd($this->tokenManager,$jsPath);
+        $this->backEnd = new CSRFBackEnd($this->tokenManager,$jsPath,$this->frontEnd);
     }
 
     public function run($autoProtect = true)
@@ -51,6 +51,7 @@ class CSRFProtector
         $this->backEnd->protectForms();
         $this->backEnd->protectLinks();
         $this->backEnd->protectRedirect();
+        $this->backEnd->protectAjax();
         $this->backEnd->saveObContents();
     }
     
@@ -73,6 +74,11 @@ class CSRFProtector
     {
         $token = $this->applyNewToken();
         return "<input type=\"hidden\" name=\"csrftoken\" value=\"$token\"></input>";    
+    }
+    
+    public function isAjax()
+    {
+        return $this->frontEnd->isAjax();
     }
 
 }
