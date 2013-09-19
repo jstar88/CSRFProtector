@@ -8,27 +8,56 @@ Cross-site request forgery, also known as a one-click attack or session riding a
 Unlike cross-site scripting (XSS), which exploits the trust a user has for a particular site, CSRF exploits the trust that a site has in a user's browser.   
 This class can be usefull to also avoid some sort of javascript scripts that attemps a human simulation or a DOS attack.  
 
+---
+
 ## Why I should use this class?
+
+* Automatic CSRF protection
+* Strong CSRF protection
+* Bot scripts protection
+* Race conditions
+* No cookie or database used
+* Ajax 
+
+---
+
+#### Automatic CSRF protection
 Most of others PHP scripts require that you manually edit link and form one by one.  
 In medium and big size application, this is not only stressful but also dangerous because as human you can do mistakes.  
 **CSRFProtector**, instead, do the job automatically!  
 
+#### Strong CSRF protection
+Most of csrf php libs protect only forms: anyway is a common practice to assign an action to an link.   
+Infact suppose to have a link like `admin.php?action=dropDB`, this script can protect you while others can't.   
+Also, often in others protection classes token are persistent. Instead here at each request the corrispective token is destroyed.
+
+#### Bot scripts protection
+CSRFProtector rewritting urls can avoid some type of javascript with the purpuse to simulate humans.
+
+#### Race conditions
+Sometimes there are too many click at second from the same browser,with CSRFProtector you can choose the time between script end execution and next request incoming.
+
+#### No cookie or database used
+CSRFProtector want to be full unintrusive.
+
+#### Ajax
+Coming soon
+
+---
+
+## Inside
 Just before the end of the scripts, it search in the output buffered each links and forms. Then, they are modified adding a speacial randomic token:
 tokens are then saved in sessions to create a white list.  
 When a web request come to your server, CSFRProtector check if the associated token is in the permitted list: if yes then the script can continue, otherwise a error is shown.  
 Not only: it also add a flag in session with the end time of script execution and you can choose when the next request is accepted.  
 
-So sum up:
-
-* CSRF protection
-* Bot scripts protection
-* Race conditions
-* No cookie or database used
 
 To do:
 
 * Enable ajax
 * Enable javascript redirect
+
+---
 
 ## Installation
 First off all, download and unzip all the contents in a folder in your server. Let's suppose is *libs*.   
