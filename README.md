@@ -19,7 +19,6 @@ This class can be usefull to also avoid some sort of javascript scripts that att
 * No cookie or database used
 * Ajax 
 
----
 
 #### Automatic CSRF protection
 Most of others PHP scripts require that you manually edit link and form one by one.  
