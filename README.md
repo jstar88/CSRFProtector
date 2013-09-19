@@ -34,7 +34,7 @@ Also, often in others protection classes token are persistent. Instead here at e
 CSRFProtector rewritting urls can avoid some type of javascript with the purpuse to simulate humans.
 
 #### Race conditions
-Sometimes there are too many click at second from the same browser,with CSRFProtector you can choose the time between script end execution and next request incoming.
+Sometimes there are too many click at second from the same browser,with CSRFProtector you can choose the time between script end execution and next incoming request.
 
 #### No cookie or database used
 CSRFProtector want to be full unintrusive.
