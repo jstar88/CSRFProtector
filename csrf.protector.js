@@ -1,32 +1,21 @@
 (function() {
-	Element.prototype.remove = function() {
-		this.parentElement.removeChild(this);
-	}
-	NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
-		for (var i = 0, len = this.length; i < len; i++) {
-			if (this[i] && this[i].parentElement) {
-				this[i].parentElement.removeChild(this[i]);
-			}
-		}
-	}
 	PXHR = function(type) {
-		if(!type) {
+		if (!type) {
 			this.original = new window.oldXMLHttpRequest;
+		} else {
+			this.original = new window.oldXMLHttpRequest(type);
 		}
-        else
-        {
-            this.original = new window.oldXMLHttpRequest(type);    
-        }
 		var pxhr = this;
 		this.original.onreadystatechange = function() {
 			pxhr._updateProps();
 			return pxhr.onreadystatechange ? pxhr.onreadystatechange() : null;
 		};
 		this._updateProps();
-        this.original.onload = function(){
-            return pxhr.onload ? pxhr.onload() : null;    
-        }
+		this.original.onload = function() {
+			return pxhr.onload ? pxhr.onload() : null;
+		}
 	}
+    /******* PUBLIC FUNCTIONS: AS XMLHTTPREQUEST API  *******/
 	PXHR.prototype = {
 		abort: function() {
 			return this.original.abort();
@@ -61,6 +50,8 @@
 		}
 	}
 	PXHR.prototype.onreadystatechange = function() {}
+    
+    /******* PUBLIC PROPERTIES: AS XMLHTTPREQUEST API   *******/
 	PXHR.prototype._updateProps = function() {
 		this.readyState = this.original.readyState;
 		this.timeout = this.original.timeout;
@@ -73,41 +64,51 @@
 			this.responseXML = this.original.responseXML;
 			this.status = this.original.status;
 			this.statusText = this.original.statusText;
-            this.updateCsrftoken();
+			this.updateCsrftoken();
 		}
 	}
-	//external vars: server,csrftoken
+    
+    /******* PRIVATE FUNCTIONS: UTILS  *******/
 	PXHR.prototype.sameServer = function(path) {
 		return path.toLowerCase().contains(server) || !path.toLowerCase().contains('http');
 	}
 	PXHR.prototype.getToken = function(url) {
-        if( typeof csrftoken[url] != "undefined" )
-        {
-            return csrftoken[url]; // not sure if is equal to server['remote uri']
-        }
-        return csrftoken['global'];
+	    url = this.pathinfo(url);
+		if (typeof csrftoken[url] != "undefined") {
+			return csrftoken[url]; // not sure if is equal to server['remote uri']
+		}
+		return csrftoken['global'];
 	}
-    PXHR.prototype.updateCsrftoken = function()
-    {
-        var c="";
-        var ob = document.getElementById("csrftokenUpdater");
-        if(ob == null) return;
-        var s = document.createElement("script");
-        s.type = "text/javascript";
-        s.text = ob.text;
-        ob.remove();
-        document.getElementsByTagName("head")[0].appendChild(s);
-    }
+	PXHR.prototype.updateCsrftoken = function() {
+		var ob = document.getElementById("csrftokenUpdater");
+		if (ob == null) return;
+		var s = document.createElement("script");
+		s.type = "text/javascript";
+		s.text = ob.text;
+		ob.remove();
+		document.getElementsByTagName("head")[0].appendChild(s);
+	}
+	PXHR.prototype.pathinfo = function(str) {
+		return "/"+str.replace(/^(?:\/\/|[^\/]+)*\//, "");
+	}
+    /******* OTHERS UTILS  *******/
+	Element.prototype.remove = function() {
+		this.parentElement.removeChild(this);
+	}
+	NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+		for (var i = 0, len = this.length; i < len; i++) {
+			if (this[i] && this[i].parentElement) {
+				this[i].parentElement.removeChild(this[i]);
+			}
+		}
+	}
     
-    if(window.XMLHttpRequest)
-    {
-        window.oldXMLHttpRequest = window.XMLHttpRequest;
-        window.XMLHttpRequest = PXHR;       
-    }
-    else if(window.ActiveXObject)
-    {
-        window.oldXMLHttpRequest = window.ActiveXObject;
-        window.ActiveXObject = PXHR;   
-    }
- 
+    /******* PXHR INJECTION  *******/
+	if (window.XMLHttpRequest) {
+		window.oldXMLHttpRequest = window.XMLHttpRequest;
+		window.XMLHttpRequest = PXHR;
+	} else if (window.ActiveXObject) {
+		window.oldXMLHttpRequest = window.ActiveXObject;
+		window.ActiveXObject = PXHR;
+	}
 })();

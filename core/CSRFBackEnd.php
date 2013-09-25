@@ -166,22 +166,23 @@ class CSRFBackEnd
         {
             $firephp->log('not ajax call');
             $csrfScript = $this->dom->createElement("script");
-            $csrfScript->setAttribute('src', $this->jsPath . '/csrf.protector.js');
-            $body->appendChild($csrfScript);
+            $csrfScript->setAttribute('src', $this->jsPath . '/csrf.protector_min.js');
+            $scriptText = "csrftoken = new Array();";
         }
-        $scriptText = "
+        $scriptText .= "
                 csrftoken['$url'] = '$token'; 
                 server = '$server';";
         if ($this->tokenManager->globalMode())
         {
             $globalToken = $this->tokenManager->applyNewToken("global", "ajax");
-            $scriptText += "csrftoken['global'] = '$globalToken';";
+            $scriptText .= "csrftoken['global'] = '$globalToken';";
         }
         $script = $this->dom->createElement("script");
         $script->appendChild($this->dom->createTextNode($scriptText));
         if (CSRFFrontEnd::isAjax())
             $script->setAttribute('id', 'csrftokenUpdater');
         $body->appendChild($script);
+        if(isset($csrfScript)) $body->appendChild($csrfScript);
     }
 
     public function protectHeaderRedirect()
