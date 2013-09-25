@@ -34,54 +34,88 @@ class CSRFBackEnd
 
     public function saveObContents()
     {
+        $firephp = FirePHP::getInstance(true);
+        $firephp->log('allTokens', $this->tokenManager->getAllTokens());
+        $firephp->log('nextAcceptedClick', $this->tokenManager->getNextClikAccepted());
         echo $this->dom->saveHTML();
     }
 
+    /**
+     * CSRFBackEnd::protectLinks()
+     * Protect the <a tag elements in the DOM
+     * @return void
+     */
     public function protectLinks()
     {
+        $firephp = FirePHP::getInstance(true);
         foreach ($this->dom->getElementsByTagName("a") as $domNode)
         {
-            $href = $this->protectUrl($domNode->getAttribute('href'));
+            $href = $this->protectUrl($domNode->getAttribute('href'), 'GET');
             if ($href == false)
             {
+                $firephp->log('external GET found:' . $domNode->getAttribute('href'));
                 continue;
             }
             $domNode->setAttribute('href', $href);
+            $firephp->log('internal GET found:' . $href);
         }
     }
 
+    /**
+     * CSRFBackEnd::protectForms()
+     * protect all forms adding a token
+     * @return void
+     */
     public function protectForms()
     {
+        $firephp = FirePHP::getInstance(true);
         foreach ($this->dom->getElementsByTagName("form") as $domNode)
         {
             $action = $domNode->getAttribute('action');
+            //if it's a GET form
             if (strtolower($domNode->getAttribute("method")) == "get")
             {
-                $href = $this->protectUrl($action);
+                $href = $this->protectUrl($action, 'GET');
                 if ($href == false)
                 {
+                    $firephp->log('external GET found:' . $action);
                     continue;
                 }
                 $domNode->setAttribute('action', $href);
-            }
-            else
+                $firephp->log('internal GET found:' . $href);
+            } else // post form
             {
+                if (!isHrefToThisServer($action))
+                {
+                    $firephp->log('external POST found:' . $action);
+                    continue;
+                }
+                $token = $this->tokenManager->applyNewToken($action, 'POST');
                 $element = $this->dom->createElement('input', '');
                 $element->setAttribute('type', 'hidden');
                 $element->setAttribute('name', 'csrftoken');
-                $element->setAttribute('value', $this->tokenManager->applyNewToken());
+                $element->setAttribute('value', $token);
                 $domNode->appendChild($element);
+                $firephp->log('internal POST found:' . $action . '  token =' . $token);
             }
         }
     }
 
-    public function protectUrl($href)
+
+    /**
+     * CSRFBackEnd::protectUrl()
+     * Return the protected url
+     * @param string $href
+     * @param string $type
+     * @return
+     */
+    public function protectUrl($href, $type)
     {
-        if (!$this->isHrefToThisServer($href))
+        if (!isHrefToThisServer($href))
         {
             return false;
         }
-        $token = $this->tokenManager->applyNewToken();
+        $token = $this->tokenManager->applyNewToken($href, $type);
         $href = (strpos($href, '?') !== false) ? "$href&" : "$href?";
         $href .= "csrftoken=$token";
         return $href;
@@ -89,9 +123,10 @@ class CSRFBackEnd
 
     public function addHistoryScript()
     {
-        if ($this->frontEnd->isAjax())
+        $firephp = FirePHP::getInstance(true);
+        if (CSRFFrontEnd::isAjax())
             return;
-        $token = $this->tokenManager->applyNewToken();
+        $token = $this->tokenManager->applyNewToken(getRequestUrlWithoutKey(array('csrftoken')), 'GET');
 
         $history = $this->dom->createElement("script");
         $history->setAttribute('src', $this->jsPath . '/native.history.js');
@@ -110,37 +145,55 @@ class CSRFBackEnd
         $body = $this->dom->getElementsByTagName("body")->item(0);
         $body->appendChild($history);
         $body->appendChild($script);
+        $firephp->log('token for next refresh= ' . $token);
     }
 
     public function protectAjax()
     {
-        $token = $this->tokenManager->applyNewToken();
+        $firephp = FirePHP::getInstance(true);
+
+        $url = getRequestUrlWithoutKey(array('csrftoken', 'csrftokenAjax'));
+        $token = $this->tokenManager->applyNewToken($url, $_SERVER['REQUEST_METHOD']);
+
+        $firephp->log('created token for next ajax call = ' . $token);
         $server = $_SERVER["HTTP_HOST"];
+        $firephp->log('server is = ' . $server);
         $body = $this->dom->getElementsByTagName("body")->item(0);
-        if ($this->frontEnd->isAjax())
+        if (CSRFFrontEnd::isAjax())
         {
-            $scriptText = "csrftoken = '$token'; server = '$server'";
-        }
-        else
+            $firephp->log('ajax call');
+        } else
         {
+            $firephp->log('not ajax call');
             $csrfScript = $this->dom->createElement("script");
             $csrfScript->setAttribute('src', $this->jsPath . '/csrf.protector.js');
             $body->appendChild($csrfScript);
-            $scriptText = "var csrftoken = '$token'; var server = '$server'";
+        }
+        $scriptText = "
+                csrftoken['$url'] = '$token'; 
+                server = '$server';";
+        if ($this->tokenManager->globalMode())
+        {
+            $globalToken = $this->tokenManager->applyNewToken("global", "ajax");
+            $scriptText += "csrftoken['global'] = '$globalToken';";
         }
         $script = $this->dom->createElement("script");
         $script->appendChild($this->dom->createTextNode($scriptText));
+        if (CSRFFrontEnd::isAjax())
+            $script->setAttribute('id', 'csrftokenUpdater');
         $body->appendChild($script);
     }
 
-    public function protectRedirect()
+    public function protectHeaderRedirect()
     {
         //clean redirect called by header() function
         foreach (apache_response_headers() as $key => $value)
         {
+
             if (strtolower($key) == "location")
             {
-                $href = $this->protectUrl($value);
+                $href = $this->protectUrl($value, 'GET');
+
                 if ($href !== false)
                 {
                     header("$key: $href");
@@ -148,6 +201,10 @@ class CSRFBackEnd
                 }
             }
         }
+    }
+    public function protectMetaRedirect()
+    {
+        $firephp = FirePHP::getInstance(true);
         //clean redirect called by meta tag
         $metaElements = $this->dom->getElementsByTagName('meta');
         foreach ($metaElements as $metaElement)
@@ -164,22 +221,14 @@ class CSRFBackEnd
                     if (!empty($url))
                     {
                         $url = substr($url, strpos($url, "=") + 1);
-                        $url = $this->protectUrl($url);
+                        $url = $this->protectUrl($url, 'GET');
                         $metaElement->setAttribute('content', "$seconds;URL=$url");
+                        $firephp->log('Redirect found:' . $url);
                     }
                 }
                 break;
             }
         }
-
-        //clean redirect called by javascript
-        //to do
-
-    }
-
-    private function isHrefToThisServer($href)
-    {
-        return parse_url($href, PHP_URL_HOST) == $_SERVER["HTTP_HOST"] || parse_url($href, PHP_URL_HOST) == null;
     }
 }
 

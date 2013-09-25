@@ -1,69 +1,113 @@
-
-PXHR = function() {
-    try { this.xhr = new XMLHttpRequest; } catch (e) {;}
-    try { this.xhr = new ActiveXObject('Msxml2.XMLHTTP'); } catch (e) {;}
-    try { this.xhr = new ActiveXObject('Microsoft.XMLHTTP'); } catch (e) {;}
-    try { this.xhr = new ActiveXObject('Msxml2.XMLHTTP.4.0'); } catch (e) {;}
-    var pxhr = this;
-    this.xhr.onreadystatechange = function() {
-        pxhr._updateProps();
-        return pxhr.onreadystatechange ? pxhr.onreadystatechange() : null;
-    };
-    pxhr._updateProps();
-}
-
-PXHR.prototype = 
-{
-    abort: function() { return this.xhr.abort();},
-    getAllResponseHeaders: function() {return this.xhr.getAllResponseHeaders();},
-    getResponseHeader: function(header) {return this.xhr.getResponseHeader(header);},
-    overrideMimeType: function(){return this.xhr.overrideMimeType()},
-    send: function(data) {return this.xhr.send(data);},
-    setRequestHeader: function(header, value) {return this.xhr.setRequestHeader(header, value);},
-    open: function(method, url, async, username, password) 
+(function() {
+	Element.prototype.remove = function() {
+		this.parentElement.removeChild(this);
+	}
+	NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+		for (var i = 0, len = this.length; i < len; i++) {
+			if (this[i] && this[i].parentElement) {
+				this[i].parentElement.removeChild(this[i]);
+			}
+		}
+	}
+	PXHR = function(type) {
+		if(!type) {
+			this.original = new window.oldXMLHttpRequest;
+		}
+        else
+        {
+            this.original = new window.oldXMLHttpRequest(type);    
+        }
+		var pxhr = this;
+		this.original.onreadystatechange = function() {
+			pxhr._updateProps();
+			return pxhr.onreadystatechange ? pxhr.onreadystatechange() : null;
+		};
+		this._updateProps();
+        this.original.onload = function(){
+            return pxhr.onload ? pxhr.onload() : null;    
+        }
+	}
+	PXHR.prototype = {
+		abort: function() {
+			return this.original.abort();
+		},
+		getAllResponseHeaders: function() {
+			return this.original.getAllResponseHeaders();
+		},
+		getResponseHeader: function(header) {
+			return this.original.getResponseHeader(header);
+		},
+		overrideMimeType: function() {
+			return this.original.overrideMimeType()
+		},
+		send: function(data) {
+			return this.original.send(data);
+		},
+		setRequestHeader: function(header, value) {
+			return this.original.setRequestHeader(header, value);
+		},
+		open: function(method, url, async, username, password) {
+			if (method.toLowerCase() == 'get' && this.sameServer(url) && !url.contains('csrftoken')) {
+				if (url.contains('?')) {
+					url += '&csrftokenAjax=1&csrftoken=' + this.getToken(url);
+				} else {
+					url += '?csrftokenAjax=1&csrftoken=' + this.getToken(url);
+				}
+			}
+			if (username) {
+				return this.original.open(method, url, async, username, password);
+			}
+			return this.original.open(method, url, async);
+		}
+	}
+	PXHR.prototype.onreadystatechange = function() {}
+	PXHR.prototype._updateProps = function() {
+		this.readyState = this.original.readyState;
+		this.timeout = this.original.timeout;
+		this.upload = this.original.upload;
+		this.withCredentials = this.original.withCredentials;
+		if (this.readyState == 4) {
+			this.response = this.original.response;
+			this.responseText = this.original.responseText;
+			this.responseType = this.original.responseType;
+			this.responseXML = this.original.responseXML;
+			this.status = this.original.status;
+			this.statusText = this.original.statusText;
+            this.updateCsrftoken();
+		}
+	}
+	//external vars: server,csrftoken
+	PXHR.prototype.sameServer = function(path) {
+		return path.toLowerCase().contains(server) || !path.toLowerCase().contains('http');
+	}
+	PXHR.prototype.getToken = function(url) {
+        if( typeof csrftoken[url] != "undefined" )
+        {
+            return csrftoken[url]; // not sure if is equal to server['remote uri']
+        }
+        return csrftoken['global'];
+	}
+    PXHR.prototype.updateCsrftoken = function()
     {
-        if(method.toLowerCase() == 'get' && this.sameServer(url) && !url.contains('csrftoken'))
-        {
-            if(url.contains('?'))
-            {
-                url += '&csrftoken='+this.getToken();        
-            }
-            else
-            {
-                url += '?csrftoken='+this.getToken();        
-            }    
-        }
-        if (username) 
-        {
-            return this.xhr.open(method, url, async, username, password);
-        }
-        return this.xhr.open(method, url, async);
+        var c="";
+        var ob = document.getElementById("csrftokenUpdater");
+        if(ob == null) return;
+        var s = document.createElement("script");
+        s.type = "text/javascript";
+        s.text = ob.text;
+        ob.remove();
+        document.getElementsByTagName("head")[0].appendChild(s);
     }
-}
-
-
-PXHR.prototype._updateProps = function() {
-    this.readyState = this.xhr.readyState;
-    this.timeout = this.xhr.timeout;
-    this.upload = this.xhr.upload;
-    this.withCredentials = this.xhr.withCredentials;
-    if (this.readyState == 4) {
-        this.response = this.xhr.response;
-        this.responseText = this.xhr.responseText;
-        this.responseType = this.xhr.responseType;
-        this.responseXML = this.xhr.responseXML;
-        this.status = this.xhr.status;
-        this.statusText = this.xhr.statusText;
+    
+    if(window.XMLHttpRequest)
+    {
+        window.oldXMLHttpRequest = window.XMLHttpRequest;
+        window.XMLHttpRequest = PXHR;       
     }
-}
-
-//external vars: server,
-PXHR.sameServer = function (path,csrftoken)
-{
-    return path.toLowerCase().contains(server) || !path.toLowerCase().contains('http');
-}
-PXHR.getToken = function()
-{
-    return csrftoken;        
-}
-window.XMLHttpRequest = PXHR;
+    else if(window.ActiveXObject)
+    {
+        window.oldXMLHttpRequest = window.ActiveXObject;
+        window.ActiveXObject = PXHR;   
+    }
+ 
+})();
