@@ -36,11 +36,18 @@
 			return this.original.setRequestHeader(header, value);
 		},
 		open: function(method, url, async, username, password) {
-			if (method.toLowerCase() == 'get' && this.sameServer(url) && !url.contains('csrftoken')) {
-				if (url.contains('?')) {
-					url += '&csrftokenAjax=1&csrftoken=' + this.getToken(url);
-				} else {
-					url += '?csrftokenAjax=1&csrftoken=' + this.getToken(url);
+			if (method.toLowerCase() == 'get' && this.sameServer(url)) {
+                if (url.contains('?')){
+                    url += '&';
+                }
+                else{
+                    url += '?';
+                }              
+                if(!url.contains('csrftoken')){
+                    url += 'csrftoken=' + this.getToken(url);        
+                }
+				if (!url.contains('csrftokenAjax')) {
+					url += '&csrftokenAjax=1' + this.getToken(url);
 				}
 			}
 			if (username) {

@@ -12,70 +12,65 @@
  */
 class CSRFFrontEnd
 {
-    private $errorFunction;
     private $tokenManager;
 
-    public function __construct(TokenManager $tokenManager, callable $errorFunction = null)
+    public function __construct(TokenManager $tokenManager)
     {
         $this->tokenManager = $tokenManager;
-        $this->errorFunction = ($errorFunction != null) ? $errorFunction : function ()
-        {
-            print_r($_SESSION);
-            die("CSRF protection");
-        }
-        ;
     }
     public function checkGets()
     {
         $firephp = FirePHP::getInstance(true);
+        $firephp->group('checkGets');
         //if it's a POST request stop
         if (isPost())
         {
             $firephp->log('it\'s a post!');
-            return;
+            return true;
         }
         //if the request have a valid token then use it and stop
         if (isset($_GET['csrftoken']) && $this->tokenManager->useToken($_GET['csrftoken'],getRequestUrlWithoutKey(array('csrftoken','csrftokenAjax')),'GET'))
         {
             $firephp->log('valid token');
-            return;
+            return true;
         }
         //if is the main page then stop
         if (empty($_GET) && $this->tokenManager->isFirstVisit())
         {
             $firephp->log('first visit');
-            return;
+            return true;
         }
         //otherwise call function error
         $firephp->log('something wrong!');
         $firephp->groupEnd();
-        call_user_func($this->errorFunction);
+        return false;
     }
     public function checkPosts()
     {
         $firephp = FirePHP::getInstance(true);
+        $firephp->group('checkPosts');
         //if it's a GET request stop
         if (isGet())
         {
             $firephp->log('it\'s a get!');
-            return;
+            return true;
         }
         //if the request have a valid token then use it and stop
         if (isset($_POST['csrftoken']) && $this->tokenManager->useToken($_POST['csrftoken'],getRequestUrlWithoutKey(array('csrftoken','csrftokenAjax')),'POST'))
         {
             $firephp->log('valid token');
-            return;
+            return true;
         }
         //if is the main page then stop
         if (empty($_POST) && $this->tokenManager->isFirstVisit())
         {
             $firephp->log('first visit');
-            return;
+            return true;
         }
         //otherwise call function error
         $firephp->log('something wrong!');
         $firephp->groupEnd();
-        call_user_func($this->errorFunction);
+        return false;
     }
     
     /**
@@ -86,14 +81,15 @@ class CSRFFrontEnd
     public function checkUser()
     {
         $firephp = FirePHP::getInstance(true);
+        $firephp->group('checkUser');
         if ($this->tokenManager->isAcceptedClick())
         {
             $firephp->log('user click accpeted');
-            return;
+            return true;
         }
         $firephp->log('user click not accpeted');
         $firephp->groupEnd();
-        call_user_func($this->errorFunction);
+        return false;
     }
     
     /**

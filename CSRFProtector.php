@@ -20,14 +20,34 @@ class CSRFProtector
     private $tokenManager;
     private $frontEnd;
     private $backEnd;
+    private $errorFunction;
 
-    public function __construct($jsPath = "", callable $errorFunction = null, callable $tokenFunction = null, $maxTime = 120, $minSecondBeforeNextClick = 1, $debug = false, $globalToken = false)
+    public function __construct($args = array())
     {
+        $errorFunction = function ()
+        {
+            print_r($_SESSION);
+            die("CSRF protection");
+        }
+        ;
+        $tokenFunction = function ()
+        {
+            return md5(mt_rand(1, 60));
+        }
+        ;
+        $jsPath = "";
+        $maxTime = 120;
+        $minSecondBeforeNextClick = 1;
+        $debug = false;
+        $globalToken = false;
+        extract($args);
+        
+        $this->errorFunction = $errorFunction;
+        
         $this->tokenManager = new TokenManager($tokenFunction, $maxTime, $minSecondBeforeNextClick, $globalToken);
-        $this->frontEnd = new CSRFFrontEnd($this->tokenManager, $errorFunction);
+        $this->frontEnd = new CSRFFrontEnd($this->tokenManager);
         $this->backEnd = new CSRFBackEnd($this->tokenManager, $jsPath, $this->frontEnd);
-        $firephp = FirePHP::getInstance(true);
-        $firephp->setEnabled = $debug;
+        FirePHP::getInstance(true)->setEnabled = $debug;
     }
 
     public function run($autoProtect = true)
@@ -53,15 +73,12 @@ class CSRFProtector
     {
         $firephp = FirePHP::getInstance(true);
         $firephp->log('Running FrontEnd');
-        $firephp->group('checkGets');
-        $this->frontEnd->checkGets();
-        $firephp->groupEnd();
-        $firephp->group('checkPosts');
-        $this->frontEnd->checkPosts();
-        $firephp->groupEnd();
-        $firephp->group('checkUser');
-        $this->frontEnd->checkUser();
-        $firephp->groupEnd();
+
+        if (!$this->frontEnd->checkGets() || !$this->frontEnd->checkPosts() || !$this->frontEnd->checkUser())
+        {
+            call_user_func($this->errorFunction);
+        }
+
     }
 
     /**
@@ -73,27 +90,14 @@ class CSRFProtector
     {
         $firephp = FirePHP::getInstance(true);
         $firephp->log('Running BackEnd');
-        $firephp->group('loadObContents');
+
         $this->backEnd->loadObContents();
-        $firephp->groupEnd();
-        $firephp->group('addHistoryScript');
         $this->backEnd->addHistoryScript();
-        $firephp->groupEnd();
-        $firephp->group('protectMetaRedirect');
         $this->backEnd->protectMetaRedirect();
-        $firephp->groupEnd();
-        $firephp->group('protectForms');
         $this->backEnd->protectForms();
-        $firephp->groupEnd();
-        $firephp->group('protectLinks');
         $this->backEnd->protectLinks();
-        $firephp->groupEnd();
-        $firephp->group('protectAjax');
         $this->backEnd->protectAjax();
-        $firephp->groupEnd();
-        $firephp->group('saveObContents');
         $this->backEnd->saveObContents();
-        $firephp->groupEnd();
     }
 
     public function applyNewToken()

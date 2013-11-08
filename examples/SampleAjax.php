@@ -2,17 +2,13 @@
 
 require ("../CSRFProtector.php");
 
-
-
-$time = 12000; //in seconds
-$min = 0; //in seconds
-
-$jsPath = "";
-
-
-$csrf = new CSRFProtector($jsPath, null, null, $time, $min,true,true);
+$csrf = new CSRFProtector(array(
+    'maxTime' => 12000,
+    'minSecondBeforeNextClick' => 0,
+    'debug' => true,
+    'globalToken' => true));
 $csrf->run();
-if($csrf->isAjax())
+if ($csrf->isAjax())
 {
     echo "Hello World!";
     die();
@@ -20,7 +16,7 @@ if($csrf->isAjax())
 echo '
 <html>
     <body>
-        <a href="#" onclick="ajax()" >click me</a>
+        <input type="button" onclick="ajax()" value="click me" />
         <div id ="content"></div>
         <script>
             function ajax()

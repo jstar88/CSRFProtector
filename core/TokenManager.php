@@ -26,16 +26,12 @@ class TokenManager
      * @param integer $globalToken
      * @return
      */
-    public function __construct(callable $tokenFunction = null, $maxTime = 120, $minSecondBeforeNextClick = 1, $globalToken = false)
+    public function __construct(callable $tokenFunction, $maxTime = 120, $minSecondBeforeNextClick = 1, $globalToken = false)
     {
-        $this->tokenFunction = ($tokenFunction != null) ? $tokenFunction : function ()
-        {
-            return md5(mt_rand(1, 60));
-        }
-        ;
         $this->maxTime = $maxTime;
         $this->minSecondBeforeNextClick = $minSecondBeforeNextClick;
         $this->globalToken = $globalToken;
+        $this->tokenFunction = $tokenFunction;
     }
 
 
@@ -85,15 +81,16 @@ class TokenManager
         {
             session_start();
         }
-        if($this->globalToken && CSRFFrontEnd::isAjax())
+        if ($this->globalToken && CSRFFrontEnd::isAjax())
         {
+            /*
             if (isset($_SESSION['csrf']) && isset($_SESSION['csrf'][$url]) && isset($_SESSION['csrf'][$url][$type]))
             {
-                //trying to use global while exist other aviable tokens: attack!
-                return false;
-            }
+            //trying to use global while exist other aviable tokens: attack!
+            return false;
+            }*/
             $url = "global";
-            $type = "ajax";    
+            $type = "ajax";
         }
         //structure conditions
         if (!isset($_SESSION['csrf']) || !isset($_SESSION['csrf'][$url]) || !isset($_SESSION['csrf'][$url][$type]))
@@ -153,7 +150,7 @@ class TokenManager
             return time();
         return $_SESSION['csrf']['nextClick'];
     }
-    
+
     public function globalMode()
     {
         return $this->globalToken;

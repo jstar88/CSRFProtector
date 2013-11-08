@@ -14,13 +14,12 @@ $token = function ()
 }
 ;
 
-$time = 120; //in seconds
-$min = 1; //in seconds
-
-$jsPath = "";
-
-
-$csrf = new CSRFProtector($jsPath, $error, $token, $time, $min);
+$csrf = new CSRFProtector(array(
+    'errorFunction' => $error,
+    'tokenFunction' => $token,
+    'maxTime' => 120,
+    'debug'=>true,
+    'minSecondBeforeNextClick' => 1));
 $csrf->run();
 echo "<html><body><a href=\"Sample.php\">click me</a></body></html>";
 
